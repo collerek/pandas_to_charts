@@ -15,7 +15,7 @@ install:
 
 script:
   - scripts/test.sh
-  - mypy --config-file mypy.ini src
+  - mypy --config-file mypy.ini pandas_to_charts
 
 after_script:
   - codecov

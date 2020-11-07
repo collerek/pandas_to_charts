@@ -35,11 +35,7 @@ class BasicSeries(Series):
 
 
 class XYSeries(Series):
-    data: List[
-        List[
-            Union[str, Number]
-        ]
-    ]
+    data: List[List[Union[str, Number]]]
 
 
 class Point2DSeries(Series):
@@ -71,7 +67,7 @@ class Plotly2DSeries(PlotlySeries):
 
 class Plotly3DSeries(Plotly2DSeries):
     z: List[List[Number]]
-    text: List[List[Number]]
+    text: List[List[Number]]  # type: ignore
 
 
 class PlotlyPieSeries(PlotlySeries):
