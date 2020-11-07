@@ -1,7 +1,8 @@
+import decimal
 from typing import List, Union, Optional
-from numbers import Number
-
 from pydantic import BaseModel
+
+Number = Union[int, float, decimal.Decimal]
 
 
 class Point2D(BaseModel):
@@ -24,6 +25,8 @@ class NamedPoint3D(Point3D):
 
 
 class Series(BaseModel):
+    name: Optional[str]
+    type: Optional[str]
     data: List
 
 
@@ -34,8 +37,7 @@ class BasicSeries(Series):
 class XYSeries(Series):
     data: List[
         List[
-            Union[str, Number],
-            Number
+            Union[str, Number]
         ]
     ]
 
@@ -56,20 +58,22 @@ class NamedPoint3DSeries(Series):
     data: List[NamedPoint3D]
 
 
-class Plotly2DSeries(BaseModel):
+class PlotlySeries(BaseModel):
+    name: Optional[str]
+    type: Optional[str]
+    text: List[Union[str, Number]]
+
+
+class Plotly2DSeries(PlotlySeries):
     x: List[Union[str, Number]]
     y: List[Number]
-    text: List[Union[str, Number]]
 
 
-class PlotlyPieSeries(BaseModel):
+class Plotly3DSeries(Plotly2DSeries):
+    z: List[List[Number]]
+    text: List[List[Number]]
+
+
+class PlotlyPieSeries(PlotlySeries):
     labels: List[Union[str, Number]]
     values: List[Number]
-    text: List[Union[str, Number]]
-
-
-class Plotly3DSeries(BaseModel):
-    x: List[Union[str, Number]]
-    y: List[Union[str, Number]]
-    z: List[Number]
-    text: List[Union[str, Number]]

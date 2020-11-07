@@ -21,8 +21,8 @@ def make_chart_data(
         df: pd.DataFrame,
         x: str,
         y: Union[str, List[str]],
-        chart_type: int,
-        library: int,
+        chart_type: ChartTypes,
+        library: Libraries,
         colors: Union[str, List[str]] = None,
 ):
     if not isinstance(colors, list):
@@ -61,30 +61,34 @@ def make_chart_data(
             index_df.columns = [x] + [y[0] + '_' + str(z) for z in range(i + 1)]
 
         index_df.fillna(0, inplace=True)
-        traces.append(generate_trace(index_df, df, x, chart_type, library, colors=colors))
+        trace = generate_trace(index_df, df, x, chart_type, library, colors=colors)
+        trace.type = ChartTypes._value2member_map_[chart_type.value].name
+        traces.append(trace.dict())
 
     else:
         for i, group_name in enumerate(data_series.group_names):
             for serie in y:
                 final_group = fill_missing_values(df, data_series, group_name, x)
-                traces.append(generate_trace(final_group, df, x, chart_type, library, serie=serie))
+                trace = generate_trace(final_group, df, x, chart_type, library, serie=serie)
+                trace.name = group_name[0]
+                trace.type = ChartTypes._value2member_map_[chart_type.value].name
+                traces.append(trace.dict())
+
+    return traces
 
 
 def generate_trace(data: pd.DataFrame,
                    raw_data: pd.DataFrame,
                    x: str,
-                   chart_type: int,
-                   library: int,
+                   chart_type: ChartTypes,
+                   library: Libraries,
                    serie=None,
                    colors=None):
-    if library not in set(item.value for item in Libraries):
-        raise TypeError('Selected charting library is not supported')
-    # we pass by reference so we can append the traces to original data
     constructor = get_chart_constructor(chart_type=chart_type, library=library)
     if 'raw_df' in signature(constructor).parameters:
-        result = constructor(data, raw_data, x, colors)
+        result = constructor(df=data, raw_df=raw_data, x=x, z=colors)
     else:
-        result = constructor(data, x, serie)
+        result = constructor(df=data, x=x, y=serie)
     return result
 
 

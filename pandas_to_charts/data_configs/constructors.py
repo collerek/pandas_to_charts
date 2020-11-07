@@ -1,5 +1,4 @@
 from enum import Enum, auto
-from numbers import Number
 from typing import List
 
 import pandas as pd
@@ -26,19 +25,19 @@ class ChartTypes(Enum):
     heatmap = auto()
 
 
-def get_chart_constructor(chart_type: int, library: int, data_type=None):
+def get_chart_constructor(chart_type: ChartTypes, library: Libraries, data_type=None):
     if library == Libraries.PLOTLY:
         if chart_type == ChartTypes.heatmap:
             return get_plotly_3d_constructor
         elif chart_type in [ChartTypes.pie, ChartTypes.doughnut]:
             return get_plotly_pie_constructor
-        elif chart_type in set(item.value for item in ChartTypes):
+        elif chart_type in (k for k in ChartTypes):
             return get_plotly_2d_constructor
         raise ChartTypeNotImplemented(f'{chart_type} is not implemented for library {Libraries.PLOTLY}')
     elif library == Libraries.HIGHCHARTS:
         if chart_type == ChartTypes.heatmap:
             return get_highcharts_3d_constructor
-        elif chart_type in set(item.value for item in ChartTypes):
+        elif chart_type in (k for k in ChartTypes):
             return get_highcharts_2d_constructor
         raise ChartTypeNotImplemented(f'{chart_type} is not implemented for library {Libraries.HIGHCHARTS}')
 
@@ -65,10 +64,9 @@ def get_plotly_pie_constructor(df: pd.DataFrame, x: str, y: str) -> PlotlyPieSer
 
 def get_plotly_3d_constructor(df: pd.DataFrame, raw_df: pd.DataFrame, x: str, z: List[str]) -> Plotly3DSeries:
     if not z or not z[0]:
-        raise ValueError('The by series variable is not set - not enough arguments')
+        raise ValueError('The colors variable is not set - not enough arguments')
 
-    y_vals: List[Number] = df.drop(x, axis=1).T.values.tolist()  # type: ignore
-
+    y_vals = df.drop(x, axis=1).T.values.tolist()  # type: ignore
     return Plotly3DSeries(
         x=df[x].values.tolist(),
         y=raw_df[z[0]].dropna().unique().tolist(),
@@ -86,16 +84,16 @@ def get_highcharts_2d_constructor(df: pd.DataFrame, x: str, y: str) -> NamedPoin
 
 def get_highcharts_3d_constructor(df: pd.DataFrame, raw_df: pd.DataFrame, x: str, z: List[str]) -> NamedPoint3DSeries:
     if not z or not z[0]:
-        raise ValueError('The by series variable is not set - not enough arguments')
+        raise ValueError('The colors variable is not set - not enough arguments')
 
     x_axis_vals = df[x].astype('category')
     by_ser_vals = raw_df[z[0]].dropna().astype('category')
 
-    x = x_axis_vals.cat.codes.tolist()
-    y = by_ser_vals.cat.codes.unique().tolist()
-    z: List = df.drop(x, axis=1).T.values.tolist()  # type: ignore
+    x_val = x_axis_vals.cat.codes.tolist()
+    y_val = by_ser_vals.cat.codes.unique().tolist()
+    z = df.drop(x, axis=1).T.values.tolist()  # type: ignore
 
     return NamedPoint3DSeries(
-        data=[NamedPoint3D(x=x_[0][0], y=x_[0][1], z=x_[1]) for x_ in zip([(i, j) for j in y for i in x],
+        data=[NamedPoint3D(x=x_[0][0], y=x_[0][1], z=x_[1]) for x_ in zip([(i, j) for j in y_val for i in x_val],
                                                                           [val for sublist in z for val in
                                                                            sublist])])
